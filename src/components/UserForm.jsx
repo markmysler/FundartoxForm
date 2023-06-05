@@ -12,38 +12,42 @@ export function UserForm() {
 	const [email, setEmail] = useState("");
 	const [fullname, setFullname] = useState("");
 	const [age, setAge] = useState("");
+
 	const [localData, setLocalData] = useState(getLocalSaves());
 
 	const handleInputChange = (e) => {
 		const { name, value } = e.target;
-		if (name === "email") {
-			setEmail(value);
-		} else if (name === "fullname") {
-			setFullname(value);
-		} else if (name === "age") {
-			setAge(value);
+		switch (name) {
+			case "email":
+				setEmail(value);
+				break;
+			case "fullname":
+				setFullname(value);
+				break;
+			case "age":
+				setAge(value);
+				break;
+			default:
+				break;
 		}
 	};
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+		const data = {
+			fullname: fullname,
+			email: email,
+			age: age,
+		};
 		try {
-			await addDoc(collection(db, "entries"), {
-				fullname: fullname,
-				email: email,
-				age: age,
-			});
+			await addDoc(collection(db, "entries"), data);
 			setEmail("");
 			setFullname("");
 			setAge(0);
 		} catch (error) {
 			console.error("Error adding user:", error);
 			console.log("Saving data to localStorage");
-			saveLocal({
-				fullname: fullname,
-				email: email,
-				age: age,
-			});
+			saveLocal(data);
 			console.log(
 				"Data saved locally, press the Send Data To DB button when connection is restored to upload it"
 			);
