@@ -1,61 +1,60 @@
 import { addDoc, collection } from "firebase/firestore";
 import React, { useState } from "react";
-import { db } from "../firebase.js"; // Import your Firestore instance
+import { db } from "../firebase.js";
 import {
 	deleteLocalSaves,
 	getLocalSaves,
 	saveLocal,
 } from "../handleLocalStorage.js";
 import "./UserForm.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export function UserForm() {
-	const [email, setEmail] = useState("");
-	const [fullname, setFullname] = useState("");
-	const [age, setAge] = useState("");
+	const form = document.getElementById("user-form");
+	let IDArray = [];
+
+	for (let i = 0; i < form.length - 1; i++) {
+		IDArray.push(form[i].id);
+	}
 
 	const [localData, setLocalData] = useState(getLocalSaves());
 
-	const handleInputChange = (e) => {
-		const { name, value } = e.target;
-		switch (name) {
-			case "email":
-				setEmail(value);
-				break;
-			case "fullname":
-				setFullname(value);
-				break;
-			case "age":
-				setAge(value);
-				break;
-			default:
-				break;
+	function createEntryObject() {
+		let objNota = {};
+
+		// Recuperamos los valores de los campos del formulario
+		for (let i = 0; i < IDArray.length; i++) {
+			const newElement = document.getElementById(IDArray[i]);
+			objNota[IDArray[i]] = [
+				newElement.labels[0].innerText,
+				newElement.value,
+			];
+			// Limpiamos los campos del formulario
+			document.getElementById(IDArray[i]).value = "";
 		}
-	};
+		return objNota;
+	}
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		const data = {
-			fullname: fullname,
-			email: email,
-			age: age,
-		};
+		const objNota = createEntryObject();
 		try {
-			await addDoc(collection(db, "entries"), data);
-			setEmail("");
-			setFullname("");
-			setAge(0);
+			await addDoc(collection(db, "entries"), objNota);
+			toast.success("Formulario enviado a DB");
 		} catch (error) {
-			console.error("Error adding user:", error);
-			console.log("Saving data to localStorage");
-			saveLocal(data);
-			console.log(
-				"Data saved locally, press the Send Data To DB button when connection is restored to upload it"
+			toast.error("Error enviando formulario, intente mas tarde");
+			toast.info("Guardando informacion localmente");
+			saveLocal(objNota);
+			toast.info(
+				"Informacion guardada localmente, intente subirla a DB mas tarde usando el boton"
 			);
-			setEmail("");
-			setFullname("");
-			setAge(0);
 			setLocalData(getLocalSaves());
 		}
+	};
+
+	form.onsubmit = (e) => {
+		handleSubmit(e);
 	};
 
 	async function handleLocalDataTransfer() {
@@ -66,51 +65,24 @@ export function UserForm() {
 					...localSaves[i][1],
 				});
 			} catch (error) {
-				console.error("handleLocalDataTransfer error ", error);
+				toast.error("DB no disponible, intente mas tarde");
 				return;
 			}
-			console.log("Upload successful, deleting local data");
+			toast.success("Datos locales cargados a DB");
 			deleteLocalSaves();
-			console.log("Local data deleted");
+			toast.success("Datos locales borrados");
 			setLocalData(getLocalSaves());
 		}
 	}
 
 	return (
 		<>
-			<form onSubmit={handleSubmit}>
-				<input
-					type="text"
-					name="fullname"
-					placeholder="Full name"
-					value={fullname}
-					onChange={handleInputChange}
-					className="la"
-				/>
-				<input
-					type="email"
-					name="email"
-					placeholder="Email"
-					value={email}
-					onChange={handleInputChange}
-					className="la"
-				/>
-				<input
-					type="number"
-					name="age"
-					placeholder="Age"
-					value={age}
-					onChange={handleInputChange}
-					className="la"
-				/>
-
-				<button type="submit">Submit</button>
-			</form>
 			{localData.length > 0 && (
 				<button onClick={handleLocalDataTransfer}>
-					Send local data to db
+					Cargar datos locales a DB
 				</button>
 			)}
+			<ToastContainer />
 		</>
 	);
 }
