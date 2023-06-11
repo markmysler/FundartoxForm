@@ -15,12 +15,6 @@ import { auth } from "../../firebase.js";
 import { signOut } from "firebase/auth";
 
 export function UserForm() {
-	const form = document.getElementById("user-form");
-	let IDArray = [];
-
-	for (let i = 0; i < form.length - 1; i++) {
-		IDArray.push(form[i].id);
-	}
 	const [user] = useAuthState(auth);
 	const [localData, setLocalData] = useState(getLocalSaves());
 
@@ -30,14 +24,21 @@ export function UserForm() {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		const objNota = createEntryObject(IDArray);
-		if (createEntryObject(IDArray) !== false) {
+		const objNota = createEntryObject();
+		if (objNota !== false) {
 			try {
-				await addDoc(collection(db, "entries"), objNota);
+				const postDocRef = await addDoc(
+					collection(db, "entries"),
+					objNota
+				);
+				await addDoc(collection(db, `users/${user.uid}/entries`), {
+					id: postDocRef.id,
+				});
 
 				toast.success("Formulario enviado a DB");
 			} catch (error) {
 				toast.error("Error enviando formulario, intente mas tarde");
+				console.log(error);
 				toast.info("Guardando informacion localmente");
 				saveLocal(objNota);
 				toast.info(
@@ -49,6 +50,8 @@ export function UserForm() {
 			toast.error("Asegurese de llenar todos los campos antes de enviar");
 		}
 	};
+
+	const form = document.getElementById("user-form");
 
 	form.onsubmit = (e) => {
 		handleSubmit(e);

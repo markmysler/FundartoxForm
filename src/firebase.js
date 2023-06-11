@@ -6,13 +6,14 @@ import { getFirestore } from "firebase/firestore";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
+
 const firebaseConfig = {
-	apiKey: "AIzaSyDu26irtLhRwwamWTAfe3Nt-uvDor0pjRA",
-	authDomain: "db-encuesta.firebaseapp.com",
-	projectId: "db-encuesta",
-	storageBucket: "db-encuesta.appspot.com",
-	messagingSenderId: "202523680885",
-	appId: "1:202523680885:web:6bd7f56ed3b6d0925d183c",
+	apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+	authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+	projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+	storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+	messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+	appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
 // Initialize Firebase
